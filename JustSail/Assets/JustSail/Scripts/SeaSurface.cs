@@ -10,7 +10,11 @@ namespace JustSail
         public Vector4 depthBounds;
         public float waveScale=.85f;
         public Vector2 windDirection=new(.94f,.34f);
-        public float Clock {get;private set;}
+        // Unity supplies fixed time inside FixedUpdate and scaled render time elsewhere.
+        // Accumulating deltaTime in Update made every physics step in a slow frame
+        // sample the same stale wave (and produced different motion at 30/120 fps).
+        double clockOrigin;
+        public float Clock {get=>(float)(Time.timeAsDouble-clockOrigin);private set=>clockOrigin=Time.timeAsDouble-value;}
         public const int WaveCount=6;
         readonly Vector4[] waves=new Vector4[WaveCount], shapes=new Vector4[WaveCount];
         readonly Vector4[] wakes=new Vector4[48], wakeDirections=new Vector4[48];
@@ -19,7 +23,8 @@ namespace JustSail
         readonly float[] angles={0,28,-32,52,-18,83};
         readonly float[] steepness={.68f,.62f,.52f,.42f,.28f,.2f};
         int wakeCount;
-        float nextWake;
+        float nextWake,previousWakeTime;
+        bool wavesConfigured;
         Vector3 previous;
         bool resetWake=true;
         Unity.Collections.NativeArray<float> depthPixels;
@@ -30,9 +35,13 @@ namespace JustSail
             public float jacobian;
             public Vector2 dx,dz;
         }
-        void Awake(){Upload();}
+        void Awake(){clockOrigin=Time.timeAsDouble;Upload();}
         void ConfigureWaves()
         {
+            // Swell keeps its heading. Rotating the entire phase field with each
+            // weather update slid distant waves sideways through the world.
+            if(wavesConfigured)return;
+            wavesConfigured=true;
             var wind=windDirection.sqrMagnitude>.01f?windDirection.normalized:Vector2.right;
             for(int i=0;i<WaveCount;i++)
             {
@@ -99,23 +108,23 @@ namespace JustSail
         public Vector4[] ShapeParameters=>shapes;
         void Update()
         {
-            Clock+=Time.deltaTime;
             if(Time.deltaTime>0&&boat)
             {
                 for(int i=0;i<wakeCount;i++)wakes[i].z+=Time.deltaTime;
                 if(Clock>=nextWake)
                 {
-                    if(resetWake){previous=boat.position;resetWake=false;}
+                    if(resetWake){previous=boat.position;previousWakeTime=Clock;resetWake=false;}
                     Vector3 move=boat.position-previous;move.y=0;
-                    float speed=move.magnitude/.18f;
-                    if(speed>.3f)
+                    float speed=move.magnitude/Mathf.Max(.001f,Clock-previousWakeTime);
+                    if(speed>.3f&&move.sqrMagnitude<100)
                     {
                         for(int i=Mathf.Min(wakeCount,47);i>0;i--){wakes[i]=wakes[i-1];wakeDirections[i]=wakeDirections[i-1];}
                         Vector3 p=boat.position-boat.forward*1.9f;
                         wakes[0]=new(p.x,p.z,0,Mathf.Clamp01(speed/6));
-                        wakeDirections[0]=new(boat.forward.x,boat.forward.z,speed,0);wakeCount=Mathf.Min(wakeCount+1,48);
+                        Vector3 direction=move.normalized;
+                        wakeDirections[0]=new(direction.x,direction.z,speed,0);wakeCount=Mathf.Min(wakeCount+1,48);
                     }
-                    previous=boat.position;nextWake=Clock+.18f;
+                    previous=boat.position;previousWakeTime=Clock;nextWake=Clock+.18f;
                 }
             }
             if(boat)transform.position=new(boat.position.x,0,boat.position.z);
@@ -123,7 +132,7 @@ namespace JustSail
         }
         public void Upload()
         {
-            ConfigureWaves();sampledDepth=null;
+            ConfigureWaves();
             Shader.SetGlobalFloat("_SeaTime",Clock);Shader.SetGlobalFloat("_WaveScale",waveScale);
             Shader.SetGlobalVectorArray("_OceanWaves",waves);Shader.SetGlobalVectorArray("_OceanShapes",shapes);
             Shader.SetGlobalTexture("_Seabed",depthMap?depthMap:Texture2D.blackTexture);

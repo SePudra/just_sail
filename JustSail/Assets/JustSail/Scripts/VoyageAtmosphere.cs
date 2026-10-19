@@ -59,7 +59,7 @@ namespace JustSail
         ParticleSystem MakeParticles(string name,Transform parent,bool bow)
         {
             var go=new GameObject(name);go.transform.SetParent(parent,false);
-            if(bow){go.transform.localPosition=new(0,.3f,2);go.transform.localRotation=Quaternion.Euler(-65,0,0);}
+            if(bow){go.transform.localPosition=new(0,.3f,2.55f);go.transform.localRotation=Quaternion.Euler(-65,0,0);}
             var ps=go.AddComponent<ParticleSystem>();ps.Stop(true,ParticleSystemStopBehavior.StopEmittingAndClear);
             var main=ps.main;main.playOnAwake=false;main.loop=true;main.duration=6;main.simulationSpace=ParticleSystemSimulationSpace.World;
             main.cullingMode=ParticleSystemCullingMode.AlwaysSimulate;
@@ -120,14 +120,16 @@ namespace JustSail
             Color horizon=Color.Lerp(Hex("304A68"),Hex("B0D8DD"),daylight);
             horizon=Color.Lerp(horizon,evening?Hex("E8AF88"):Hex("F0C9A1"),golden);
             CloudCover=weatherMode==1?.73f:Mathf.Lerp(.38f,.89f,Storm);
+            float overcast=weatherMode==1?1:Storm;
+            top=Color.Lerp(top,Hex("839BA9"),overcast*.25f*daylight);
             top=Color.Lerp(top,Hex("435B6B"),Storm*.75f);horizon=Color.Lerp(horizon,Hex("82979D"),Storm*.65f);
             Color sunlight=Color.Lerp(Hex("FFF0D5"),Hex("FFB174"),golden*.85f);
             sunlight=Color.Lerp(Hex("B4CEFF"),sunlight,daylight);
             float lightning=Storm>.6f?Mathf.Pow(Mathf.Max(0,Mathf.Sin(sea.Clock*2*Mathf.PI/19)),180)*Storm:0;
             Vector3 keyDirection=daylight>.15f?sunDirection:-sunDirection;keyDirection.y=Mathf.Max(.045f,Mathf.Abs(keyDirection.y));keyDirection.Normalize();
             sun.transform.rotation=Quaternion.LookRotation(-keyDirection,Vector3.forward);
-            sun.color=sunlight;sun.intensity=Mathf.Lerp(.26f,1.65f,daylight)*Mathf.Lerp(1,.43f,Storm)+lightning*1.8f;
-            sun.shadowStrength=1f;RenderSettings.sun=sun;
+            sun.color=sunlight;sun.intensity=Mathf.Lerp(.26f,1.5f,daylight)*Mathf.Lerp(1,.43f,Storm)*Mathf.Lerp(1,.66f,weatherMode==1?1:0)+lightning*1.8f;
+            sun.shadowStrength=Mathf.Lerp(.88f,.55f,overcast);RenderSettings.sun=sun;
             RenderSettings.ambientMode=UnityEngine.Rendering.AmbientMode.Trilight;
             RenderSettings.ambientSkyColor=Color.Lerp(Hex("354E70"),Hex("839BB5"),daylight)*Mathf.Lerp(1,.7f,Storm);
             RenderSettings.ambientEquatorColor=Color.Lerp(Hex("263C55"),Hex("63798A"),daylight);
@@ -152,7 +154,7 @@ namespace JustSail
             SetColor("_SeaFoam",Color.Lerp(Hex("7499B0"),Hex("D7EBDE"),daylight));
             Shader.SetGlobalFloat("_Wetness",Storm);
             Shader.SetGlobalFloat("_AuroraStrength",AuroraStrength);
-            Shader.SetGlobalFloat("_HazeDensity",Mathf.Lerp(.00065f,.004f,Storm));
+            Shader.SetGlobalFloat("_HazeDensity",Mathf.Lerp(.00085f,.004f,Storm));
             SetColor("_HazeColor",Color.Lerp(horizon,Hex("B6B0C4"),daylight*golden*.28f));
             for(int i=0;i<wetMaterials.Count;i++){var m=wetMaterials[i];if(!m)continue;m.SetColor("_BaseColor",dryColors[i]*Mathf.Lerp(1,.79f,Storm));m.SetFloat("_Smoothness",Mathf.Lerp(.045f,.36f,Storm));}
             if(lantern)lantern.SetColor("_EmissionColor",Hex("FFD092")*(Night*2));

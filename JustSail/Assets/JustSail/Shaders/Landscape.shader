@@ -12,9 +12,10 @@ Shader "JustSail/Landscape"
             #pragma fragment frag
             #pragma multi_compile_fog
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
-            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "DioramaFog.hlsl"
+            #include "CoastalPalette.hlsl"
             float _WorldClock,_Wetness;
             struct A{float4 positionOS:POSITION;float3 normalOS:NORMAL;float4 color:COLOR;};
             struct V{float4 positionCS:SV_POSITION;float3 normal:TEXCOORD0;float3 world:TEXCOORD1;float4 color:COLOR;float fog:TEXCOORD2;};
@@ -25,12 +26,17 @@ Shader "JustSail/Landscape"
                 float ndl=saturate(dot(n,l.direction));
                 float3 ambient=SampleSH(n)*.85;
                 float3 direct=l.color*ndl*l.shadowAttenuation;
-                float3 col=i.color.rgb*(1-_Wetness*.12)*(ambient+direct);
+                float meadow=smoothstep(.045,.18,i.color.r-i.color.b)*smoothstep(.5,2.8,i.world.y);
+                float3 pigment=lerp(i.color.rgb,MeadowPigment(i.world.xz),meadow);
+                // A narrow wet mineral band grounds the land in the water.
+                float wetEdge=(1-smoothstep(.05,1.2,i.world.y))*step(-1.5,i.world.y);
+                pigment*=1-wetEdge*.24-_Wetness*.1;
+                float3 col=pigment*(ambient+direct);
                 float depth=max(0,-i.world.y);
                 float a=sin(i.world.x*2.1+i.world.z*.9+_WorldClock*.8),b=sin(i.world.z*2.4-i.world.x*.7-_WorldClock*.63);
                 float caustic=pow(saturate(1-abs(a+b)*1.7),7)*exp(-depth*.55)*step(i.world.y,0);
                 col+=l.color*caustic*.45*l.shadowAttenuation;
-                return half4(DioramaFog(MixFog(col,i.fog),i.world),1);
+                return half4(DioramaFog(col,i.world),1);
             }
             ENDHLSL
         }

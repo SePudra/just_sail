@@ -3,7 +3,127 @@ guid: ced224433a486ae4fb9dd2fbfcc2b47a
 ModelImporter:
   serializedVersion: 24600
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefAmber
+    second: {fileID: 2100000, guid: eec8d4cb756dcd74dabc6e70d2c76a6c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefAmberDark
+    second: {fileID: 2100000, guid: a426e4543016e1c4fbad9c95554f9e7e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefAmberLight
+    second: {fileID: 2100000, guid: 108a2b893fc79b04db661e6bce7671d6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefBark
+    second: {fileID: 2100000, guid: cf163be7948e0f24b850461dc22bd8be, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefBirchBark
+    second: {fileID: 2100000, guid: 57bc7d648bcd1bd4ab773381a818e613, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefBrass
+    second: {fileID: 2100000, guid: 4d210333bb7e71e4aa43b463a8984010, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefDeck
+    second: {fileID: 2100000, guid: e486a8ea53c073147a276408fc3fb6a2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefDriftwood
+    second: {fileID: 2100000, guid: 26bf20047bdd120469ddceba37671829, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefFir
+    second: {fileID: 2100000, guid: 0398c400b6b4a394c99b8b422d6bb39f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefFirDark
+    second: {fileID: 2100000, guid: 0d21d537ce4110f4e971ef1b41622c34, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefFirLight
+    second: {fileID: 2100000, guid: d1be563ca3ac31c43b91c733676dfd6b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefHullIvory
+    second: {fileID: 2100000, guid: bdf8c59950e684c4287446e9183215ad, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefHullRed
+    second: {fileID: 2100000, guid: 36e581f878549054fa25c9ea805e2591, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefInk
+    second: {fileID: 2100000, guid: 904b3fd3b81bf4b4e8e9aa3d41259e36, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefRope
+    second: {fileID: 2100000, guid: 2bd633d7fc2a780498fdd9295515a490, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefRust
+    second: {fileID: 2100000, guid: e49a263ea4fd8e2479e7b80b52ba0af7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefRustDark
+    second: {fileID: 2100000, guid: d83ff027f7ed0dc4cbed40c884dbf3b5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefRustLight
+    second: {fileID: 2100000, guid: 9d66c6fb8c07d70409d135b3605c4068, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefSailLinen
+    second: {fileID: 2100000, guid: cfb5d4501559adc46a2888a654eb182a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefShrub
+    second: {fileID: 2100000, guid: a57f080610b3bca468f47461e2c79115, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefShrubTip
+    second: {fileID: 2100000, guid: 9b9444024c066c74193d20aebf9069f7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefSlate
+    second: {fileID: 2100000, guid: fe5c7f0c7c630b543afee259e5f7f4f8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefTeak
+    second: {fileID: 2100000, guid: 0ccdaaba44856af449aae94f21e2eb0c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: RefVermilion
+    second: {fileID: 2100000, guid: 878367341c8cc1c4cb81f7f49c66f548, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

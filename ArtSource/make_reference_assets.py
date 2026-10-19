@@ -1,14 +1,15 @@
 """Original model revision informed by the supplied autumn trailer frames."""
 import bpy, math, random, os
 from mathutils import Vector
-ROOT=r'C:\Projeler\just_sail'
+ROOT=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT=os.path.join(ROOT,'JustSail','Assets','JustSail','Art','Reference')
 os.makedirs(OUT,exist_ok=True)
 random.seed(196)
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
+for collection in list(bpy.data.collections):bpy.data.collections.remove(collection)
 def mat(name,hex):
     rgb=tuple(int(hex[i:i+2],16)/255 for i in (0,2,4))
-    m=bpy.data.materials.new(name);m.diffuse_color=(*rgb,1);m.use_nodes=True
+    m=bpy.data.materials.get(name) or bpy.data.materials.new(name);m.diffuse_color=(*rgb,1);m.use_nodes=True
     p=m.node_tree.nodes.get('Principled BSDF');p.inputs['Base Color'].default_value=(*rgb,1);p.inputs['Roughness'].default_value=.78
     return m
 cream=mat('RefHullIvory','E3D8B7');sailcloth=mat('RefSailLinen','F7ECD1');teak=mat('RefTeak','946044');deck=mat('RefDeck','B98756')
@@ -16,7 +17,7 @@ red=mat('RefHullRed','863F35');redLight=mat('RefVermilion','CD6343');dark=mat('R
 pine=[mat('RefFirDark','2C4A29'),mat('RefFir','466B38'),mat('RefFirLight','6B8845')]
 amber=[mat('RefAmberDark','A85F29'),mat('RefAmber','D48A34'),mat('RefAmberLight','EDB04F')]
 orange=[mat('RefRustDark','AA4723'),mat('RefRust','D96A2E'),mat('RefRustLight','EC8D40')]
-white=mat('RefBirchBark','D9DDD2');bark=mat('RefBark','64503F');stone=mat('RefSlate','97909A');shrubm=[mat('RefShrub','556F37'),mat('RefShrubTip','839346')]
+white=mat('RefBirchBark','D9DDD2');bark=mat('RefBark','64503F');stone=mat('RefSlate','777E83');shrubm=[mat('RefShrub','556F37'),mat('RefShrubTip','839346')]
 def begin(name):
     c=bpy.data.collections.new(name);bpy.context.scene.collection.children.link(c)
     bpy.context.view_layer.active_layer_collection=bpy.context.view_layer.layer_collection.children[name];return c
@@ -40,7 +41,7 @@ def export(c):
     groups={}
     for o in list(c.objects):
         if o.type!='MESH':continue
-        key=o.name if o.name in ('Mainsail','Jib') else 'Rigid'
+        key=o.get('rig_group',o.name if o.name in ('Mainsail','Jib') else 'Rigid')
         groups.setdefault(key,[]).append(o)
     for key,objects in groups.items():
         bpy.ops.object.select_all(action='DESELECT')
@@ -49,7 +50,12 @@ def export(c):
         for o in objects:
             bpy.context.view_layer.objects.active=o
             for modifier in list(o.modifiers):bpy.ops.object.modifier_apply(modifier=modifier.name)
-        bpy.context.view_layer.objects.active=objects[0];bpy.ops.object.join();objects[0].name=key
+        active=next((o for o in objects if o.name==key),objects[0])
+        bpy.context.view_layer.objects.active=active;bpy.ops.object.join();active.name=key
+        if key in ('Mainsail','Jib'):
+            pivot=Vector((0,-.62,1.83) if key=='Mainsail' else (0,-2.65,1.23))
+            from mathutils import Matrix
+            active.data.transform(Matrix.Translation(active.location-pivot));active.location=pivot
     bpy.ops.object.select_all(action='DESELECT')
     for o in c.objects:o.select_set(True)
     bpy.context.view_layer.objects.active=next(iter(c.objects))
@@ -70,7 +76,11 @@ for side in (-1,1):
         line('Teak cap rail',(side*width[k],ys[k],sheer[k]+.025),(side*width[k+1],ys[k+1],sheer[k+1]+.025),.046,teak)
         line('Cream boot stripe',(side*width[k]*.965,ys[k],.48),(side*width[k+1]*.965,ys[k+1],.48),.024,cream)
         line('Inner bulwark',(side*width[k]*.87,ys[k],sheer[k]-.07),(side*width[k+1]*.87,ys[k+1],sheer[k+1]-.07),.036,cream)
-mesh('Transom',[(-.74,2.35,.95),(.74,2.35,.95),(.62,2.35,.05),(0,2.35,-.55),(-.62,2.35,.05)],[(0,1,2,3,4)],red)
+# Match every terminal hull chine. The previous five-sided cap cut across
+# the .55 m and -.4 m chines, leaving visible triangular holes at the stern.
+w=width[-1];y=ys[-1];z=sheer[-1]
+transom=[(-w,y,z),(w,y,z),(w*.99,y,.55),(w*.83,y,.05),(w*.4,y,-.4),(0,y,-.55),(-w*.4,y,-.4),(-w*.83,y,.05),(-w*.99,y,.55)]
+mesh('Transom',transom,[tuple(range(len(transom)))],red)
 mesh('Deck',[(0,-2.85,.98),(-.87,-1.65,.81),(-.99,-.6,.76),(-.99,.5,.77),(-.86,1.65,.83),(-.71,2.32,.87),(.71,2.32,.87),(.86,1.65,.83),(.99,.5,.77),(.99,-.6,.76),(.87,-1.65,.81)],[(0,1,2,3,4,5,6,7,8,9,10)],deck)
 for j in range(15):
     x=(j-7)*.115
@@ -93,7 +103,7 @@ for side in (-1,1):
         line('Mooring cleat',(side*.82,y,.99),(side*.97,y,.99),.025,brass)
 box('Companionway',(0,-.08,1.08),(.55,.065,.4),dark,.03)
 line('Mast',(0,-.64,.6),(0,-.64,6.85),.071,teak,12,r2=.04)
-line('Boom',(0,-.64,1.66),(.18,1.94,1.69),.051,teak)
+boom=line('Boom',(0,-.64,1.66),(.18,1.94,1.69),.051,teak);boom['rig_group']='Mainsail'
 for a,b in [((0,-.64,6.73),(0,-2.6,1.08)),((0,-.64,6.73),(-.95,.4,.91)),((0,-.64,6.73),(.95,.4,.91))]:line('Standing rigging',a,b,.009,dark,5)
 def sail(name,A,B,C,belly):
     A,B,C=map(Vector,(A,B,C));n=16;v=[];idx={}
@@ -108,7 +118,8 @@ def sail(name,A,B,C,belly):
             if j<n-i-1:faces.append((idx[i+1,j],idx[i+1,j+1],idx[i,j+1]))
     o=mesh(name,v,faces,sailcloth)
     for poly in o.data.polygons:poly.use_smooth=True
-    for a,b in [(A,B),(B,C),(C,A)]:line('Sail hem',a,b,.012,rope,5)
+    for a,b in [(A,B),(B,C),(C,A)]:
+        hem=line('Sail hem',a,b,.012,rope,5);hem['rig_group']=name
 sail('Mainsail',(0,-.62,6.59),(.06,-.62,1.83),(.18,1.85,1.83),.4)
 sail('Jib',(0,-.79,5.57),(0,-2.65,1.23),(0,-.79,1.55),-.24)
 box('Rudder',(0,2.49,.08),(.13,.42,1.15),dark,.035);line('Tiller',(0,2.49,.96),(0,1.54,1.05),.036,teak)
@@ -147,24 +158,24 @@ def broadleaf(name,materials):
         z=random.uniform(.4,6.5);x=.03*z;line('Bark lenticel',(x-.11,-.122,z),(x+.11,-.122,z+random.uniform(-.03,.03)),.012,dark,4)
     vertices=[];faces=[];mi=[]
     lobes=[((.15,.15,8.6),(1.4,1.2,1.65)),((-1.05,.1,7.1),(1.5,1.3,1.7)),((1.3,-.1,7.45),(1.45,1.3,1.6)),((.3,-.9,6.4),(1.3,1.25,1.45))]
-    for j in range(6500):
+    for j in range(3600):
         # Branch-scale lobes avoid a single egg-shaped crown. Smaller leaves retain porous edges.
         a=random.random()*math.tau;u=random.uniform(-1,1);rad=random.random()**.36
         center,extent=lobes[j%len(lobes)]
         q=Vector(center)+Vector((math.cos(a)*math.sqrt(1-u*u)*extent[0]*rad,math.sin(a)*math.sqrt(1-u*u)*extent[1]*rad,u*extent[2]*rad))
         q.x+=.16+q.z*.025
-        size=random.uniform(.065,.145);ang=random.random()*math.tau
+        size=random.uniform(.095,.18);ang=random.random()*math.tau
         right=Vector((math.cos(ang),math.sin(ang),random.uniform(-.4,.4)))*size;up=Vector((-math.sin(ang)*.6,math.cos(ang)*.6,random.uniform(.25,1)))*size
         k=len(vertices);vertices.extend([q-right,q+up,q+right,q-up]);faces.extend([(k,k+1,k+2),(k,k+2,k+3)])
-        mi.extend([random.choices([0,1,2],[3 if q.z<7 else 1,5,3 if q.z>7.5 else 1])[0]]*2)
+        mi.extend([0 if q.z<6.5 else 2 if q.z>8.7 else 1]*2)
     o=mesh('Leaf crown',vertices,faces,materials)
     for p,index in zip(o.data.polygons,mi):p.material_index=index
     export(c);return c
 birch=broadleaf('BirchGold',amber);rust=broadleaf('BirchRust',orange)
 rock=begin('SlateBoulder')
-o=mesh('Weather rounded slate',[(-3,-1.3,-.5),(-1,-2,-.5),(2.2,-1.8,-.5),(3,1.5,-.5),(-2.6,1.8,-.5),(-2,-.8,1.8),(-.6,-1.1,3),(1,-.9,2.6),(2.4,.9,1.5),(-1.8,1.1,2.4)],[(4,3,2,1,0),(0,1,6,5),(1,2,7,6),(2,3,8,7),(3,4,9,8),(4,0,5,9),(5,6,7,8,9)],stone)
-for p in o.data.polygons:p.use_smooth=True
-bevel=o.modifiers.new('Eroded broad edges','BEVEL');bevel.width=.48;bevel.segments=2
+o=mesh('Split coastal slate',[(-3,-1.3,-.5),(-1,-2,-.5),(2.2,-1.8,-.5),(3,1.5,-.5),(-2.6,1.8,-.5),(-2,-.8,1.8),(-.6,-1.1,3),(1,-.9,2.6),(2.4,.9,1.5),(-1.8,1.1,2.4)],[(4,3,2,1,0),(0,1,6,5),(1,2,7,6),(2,3,8,7),(3,4,9,8),(4,0,5,9),(5,6,7,8,9)],stone)
+for p in o.data.polygons:p.use_smooth=False
+bevel=o.modifiers.new('Eroded broad edges','BEVEL');bevel.width=.10;bevel.segments=1
 normals=o.modifiers.new('Slate face normals','WEIGHTED_NORMAL');normals.keep_sharp=True;normals.weight=60
 export(rock)
 shr=begin('ShoreShrub');v=[];f=[]

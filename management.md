@@ -1,6 +1,6 @@
 # Just Sail — Üretim Yönetimi
 
-Sürüm: 0.6 · 16 Ekim 2026 · Aşama: M2c video referanslı sanat çalışması
+Sürüm: 0.7 · 19 Ekim 2026 · Aşama: Askıya alındı — 19 Ekim 2026
 
 ## Belgeleri kullanma
 
@@ -60,7 +60,18 @@ M1 iş sırası: URP projesi → ilk koy, tekne ve su → ortak dalga/yüzdürme
 
 M1 sonrasında önce kullanıcı geri bildirimleri ele alınır. Prototip değerlendirilmeden büyük ada/tekne koleksiyonu üretimine geçilmez. Streaming/origin shifting gibi ek sistemler ihtiyaç ölçülünce değerlendirilir.
 
-**Güncel iş:** FB-005 kapsamında kullanıcının dört intro videosundan görsel hedef çıkarılıyor; kareler, kaynak zamanları ve tur başına karşılaştırmalar `Verification/VisualStudy/` içinde. Gerçek Unity render'ları kullanılır; kurgulu video görüntüsü oynanış davranışı diye kabul edilmez. Güncel tekne/bitki/kaya kaynağı `ArtSource/JustSail_ReferenceAssets.blend`, sahne uygulayıcı `ReferenceArtPass.cs`. Görsel kabul kullanıcıya aittir.
+**Önceki M2c işi:** FB-005 kapsamında kullanıcının dört intro videosundan görsel hedef çıkarılıyor; kareler, kaynak zamanları ve tur başına karşılaştırmalar `Verification/VisualStudy/` içinde. Gerçek Unity render'ları kullanılır; kurgulu video görüntüsü oynanış davranışı diye kabul edilmez. Güncel tekne/bitki/kaya kaynağı `ArtSource/JustSail_ReferenceAssets.blend`, sahne uygulayıcı `ReferenceArtPass.cs`. Görsel kabul kullanıcıya aittir.
+
+### M2d — 19 Ekim 2026 bulut revizyonu
+
+- Güncel kullanıcı isteği FB-006: oynanış eklemeden sanat yönü ve fizik/hareketi iyileştirme. Palet ve uygulanan davranışlar design.md'de.
+- Mevcut `reference-03.png` / `reference-08.png` Unity kareleri incelendi. Kaynak tekne/çevre modelleri Blender 4.3.2 ile yeniden üretildi; yakın plan incelemesinde bulunan kıç kaplama açıklığı gövde köşeleriyle eşleştirilerek kapatıldı; FBX GUID'leri korundu, altı modelin malzemeleri adlarıyla eşlendi. 1.826 eski materyal sıra geçersiz kılması sahneden kaldırıldı; sahnenin 2.978 YAML belgesi ve materyal GUID hedefleri kontrol edildi.
+- Unity 6000.6.6f1 Linux Editor buluta kuruldu; açılış **“No valid Unity Editor license found”**, çıkış 198 ile durdu. Önceki Windows makinesindeki lisans/performans sonuçları bu değişikliklere ait değildir. Bu turda yeni Unity render, sahne importu, Windows build veya gerçek PhysX sürüşü doğrulanmadı.
+- Oyun ve Editor C# kaynakları ayrı assembly olarak gerçek Unity 6.6 / paket kütüphaneleriyle derlendi. Eski `FindFirstObjectByType` kullanımından deprecation uyarıları var. Altı shader'ın 20 vertex/fragment aşaması ve gölgeli varyantı DXC ile URP 17.6.0 include dosyalarına karşı derlendi; bu kontrol Unity shader importu / tüm platform varyantları değildir.
+- Gerçek `SeaSurface.Evaluate` / `SampleSurface` metotları, açık su için üç dalga şiddetinde 2.100 noktada çalıştırıldı: ters örnekleme en fazla 0,000316 m; analitik normal sonlu fark sapması 0,00111; hız sapması 0,00402 m/s; en küçük determinant 0,4178. Seabed/PhysX/GPU çalışma zamanı testi sayılmaz.
+- `Verification/CoastalPass/SourceChecks/report.json` ve loglar yeniden üretilebilir kaynak kanıtıdır. `boat-source.png` ve `shore-models-source.png` Blender model incelemeleridir; Unity oyun görüntüsü değildir. Yardımcı kıyı önizlemesi de Unity shader, ot ve render zincirini temsil etmez.
+- Tekrar: `python ArtSource/verify_coastal.py --unity-data <Editor/Data> --dxc <dxc>`; model kontrolü: `blender -b --python ArtSource/preview_assets.py`. İndirilmiş araçlar kaynak projenin dışında tutulur.
+- Lisanslı Unity'de `FirstVoyage` → Play → Denize Açıl → **Just Sail / Review / Capture coastal art** beş sabit kadrajı `Verification/CoastalPass/Unity` altına yazar. **Run ocean and buoyancy checks** mevcut gerçek oyun testini başlatır. Sonraki kontrol: 30/60/120 FPS'te salınım/dümen, fırtına ve pause/devam; yakın kıyıda kamera; yeni FBX import ve materyalleri; yansımanın ek gölge maliyeti. Bunlar yapılmış sayılmaz.
 
 ### M2c son doğrulama
 
@@ -158,3 +169,11 @@ Unity kaynakları `JustSail/Assets/JustSail/`, Blender dosyaları/betikleri `Art
 - Haricî assetin kaynak/lisansını kaydet; ücretli asset veya hizmet mevcut plana dahil değil.
 
 
+
+### 19 Ekim 2026 — Tek klasörde birleştirme
+
+`just-sail-improved/just_sail` kaynakları ana `C:/Projeler/just_sail` klasörüne aktarıldı. 438 kaynak dosyası SHA-256 ile doğrulandı; 35 değişmiş ve 7 yeni dosya korundu. Ana klasördeki REA, Tools, Verification ve Git verileri korundu. İki sürümün kaynak yedeği `Verification/Consolidation/before-consolidation.zip`; ayrıntı `merge-result.json`. Ana projede FirstVoyage açıldı, C# hatası yok, Play Mode kare/zaman ilerlemesi doğrulandı ve Windows build tamamlandı. Bu kısa kontrol tam fizik regresyonu veya görsel kabul değildir. Unity build sırasında URP runtime listesi üretti; testteki kalite tercihi etkisi geri alındı ve improved font kaynağı korundu. İkinci improved klasörü doğrulama sonrasında silindi; bundan sonra tek çalışma projesi `JustSail/`. GitHub bu birleştirmeyle güncellenmedi.
+
+### Askıya alma — 19 Ekim 2026
+
+Kullanıcı projeyi REA kapasite denemesi olarak başarılı buldu; görev, konuşma ve geniş dünya üretimine geçilmeden askıya alınmasını istedi. Improved birleştirmesi ve yansıma en-boy oranı düzeltmesi son kaynaklara dahildir. Kaynaklar ve REA raporları main dalında, tüm yerel proje dosyaları (build, araçlar, doğrulama/yedekler ve Unity önbelleği dahil) paused-2026-10-19 release arşivinde saklanır. GitHub kopyası doğrulandıktan sonra yerel proje klasörü kaldırılır. Kurulu Unity/Blender gibi ortak uygulamalar ve Downloads içindeki kullanıcı videoları proje klasörü dışında kaldığından silme kapsamına dahil değildir.

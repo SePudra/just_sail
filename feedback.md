@@ -29,6 +29,28 @@ Durumlar: Açık, Uygulandı, Kullanıcı değerlendirmesinde, Kabul edildi, Ert
 
 ## Açık kayıtlar
 
+### FB-007 — Yansıma ekranın iki yanında kesiliyor
+
+19 Ekim 2026 · Düzeltildi; kullanıcı değerlendirmesinde
+
+- **Kullanıcının yorumu:** Su yansıması belirli bir sınırda kalıyor; sağ ve sol kenarlarda görünmüyor.
+- **Neden:** `Camera.CopyFrom` otomatik en-boy oranını da taşıyordu. Kare RenderTexture atanınca yansıma kamerasının oranı 1:1 oluyordu; geniş ekranın iki yanı yansıma görüş alanı dışında kalıyordu. Eski sabit kare yakalayıcı ana kameranın oranını elle verdiği için bu durum yakalanmadı.
+- **Düzeltme:** Hedef doku atandıktan sonra yansıma kamerasına her yenilemede `source.aspect` açıkça atanıyor. Mevcut dalga, yansıma rengi ve kenar yumuşatma korunuyor.
+- **Kontrol:** Otomatik oranla önce 1.809/1.0, sonra 1.809/1.809 ölçüldü. Aynı kadraj önce/sonra görselleri `Verification/ReflectionFix/automatic-before.png` ve `automatic-after.png`; 4:3, 16:9, 21:9 oran eşleşmeleri doğrulandı. C# derlemesi geçti. Görsel kabul kullanıcıya ait.
+- **Ders:** Sabit kadraj testine ek olarak normal otomatik kamera oranını da kontrol et.
+
+
+
+### FB-006 — Görsel yön ve hareket tutarlılığı
+
+19 Ekim 2026 · Kıyı / su / fizik revizyonu · Uygulandı; Unity çalışma zamanı doğrulaması bekliyor
+
+- **Kullanıcının yorumu:** Mevcut hali kabul edilebilir; daha tutarlı Over the Hill hissi, daha iyi görsel yön ve fizik istiyor. Oynanış kapsamı bu çalışmanın dışında.
+- **Tespit:** Mevcut karelerde tekdüze turuncu örtü, tekrar eden yumuşak kayalar, baskın/morlaşan yansıma; kodda render karesine bağlı fizik saati, kayan ot kökleri, gövdeden farklı hareket eden arma parçaları ve sıra bağımlı malzeme ataması.
+- **Düzeltme:** Ortak kıyı paleti/tek sis yolu, daha ölçülü su ve köpük, köke bağlı ot, geniş kaya yüzeyleri, daha sade huş renk kütleleri; sabit adım dalga zamanı, suya göre direnç, sönümlü dümen/yatış/kamera, tutarlı yelken pivotları, kıç kaplamasındaki geometri açıklığının kapatılması ve isimle malzeme eşlemesi.
+- **Sonuç:** C# ve DXC kaynak kontrolleri, açık su dalga matematiği ve Blender kaynak model incelemesi yapıldı. Bulut Unity Editor lisansı bulunmadığından yeni Unity render, PhysX seyri ve Windows build doğrulanmadı. Ayrıntı ve yeniden çalıştırma komutları management.md içindeki M2d kaydında. Kullanıcı görsel kabulü yok.
+
+
 ### FB-005 — Teknik uyarlama görsel benzerlik sağlamadı
 
 16 Ekim 2026 · Video referanslı sanat çalışması · Kullanıcı değerlendirmesinde

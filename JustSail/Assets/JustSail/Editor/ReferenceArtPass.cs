@@ -22,7 +22,7 @@ namespace JustSail.Editor
             {"RefFirDark","2C4A29"},{"RefFir","466B38"},{"RefFirLight","6B8845"},
             {"RefAmberDark","A85F29"},{"RefAmber","D48A34"},{"RefAmberLight","EDB04F"},
             {"RefRustDark","AA4723"},{"RefRust","D96A2E"},{"RefRustLight","EC8D40"},
-            {"RefBirchBark","D9DDD2"},{"RefBark","64503F"},{"RefSlate","97909A"},{"RefShrub","556F37"},{"RefShrubTip","839346"},{"RefDriftwood","B6A78C"}
+            {"RefBirchBark","D9DDD2"},{"RefBark","64503F"},{"RefSlate","777E83"},{"RefShrub","556F37"},{"RefShrubTip","839346"},{"RefDriftwood","B6A78C"}
         };
         static Color Hex(string value){ColorUtility.TryParseHtmlString("#"+value,out var c);return c;}
         static T Save<T>(T value,string path) where T:Object
@@ -49,6 +49,7 @@ namespace JustSail.Editor
             var m=AssetDatabase.LoadAssetAtPath<Material>(path);
             if(!m){m=new Material(Shader.Find("JustSail/Crafted"));AssetDatabase.CreateAsset(m,path);}
             m.SetColor("_BaseColor",Hex(colors.TryGetValue(name,out var hex)?hex:"9B8A71"));m.SetFloat("_Smoothness",.035f);
+            m.SetFloat("_Stone",name=="RefSlate"?1:0);
             m.SetFloat("_Foliage",name.Contains("Fir")||name.Contains("Amber")||name.Contains("Rust")||name.Contains("Shrub")?1:0);
             EditorUtility.SetDirty(m);palette[name]=m;return m;
         }
@@ -223,6 +224,8 @@ namespace JustSail.Editor
                     float angle=a+j*2.1f;var side=new Vector3(Mathf.Cos(angle),0,Mathf.Sin(angle))*width;
                     var p=new Vector3(x,h-.04f,z);int k=v.Count;
                     v.Add(p-side);v.Add(p+new Vector3(.11f,height,.07f));v.Add(p+side);
+                    // Preserve float alpha .84 / 1.15: Meadow uses it to pin
+                    // roots and bend tips, independent of vertex/index order.
                     colors.Add(baseColor*.84f);colors.Add(baseColor*1.15f);colors.Add(baseColor*.84f);tris.Add(k);tris.Add(k+1);tris.Add(k+2);
                 }
             }
@@ -255,7 +258,7 @@ namespace JustSail.Editor
             var volume=Object.FindFirstObjectByType<Volume>();var profile=volume.sharedProfile;
             OverTheHillAdaptation.ConfigureAO();
             var tone=profile.TryGet<Tonemapping>(out var tmap)?tmap:profile.Add<Tonemapping>(true);tone.mode.Override(TonemappingMode.Neutral);
-            var grade=profile.TryGet<ColorAdjustments>(out var cad)?cad:profile.Add<ColorAdjustments>(true);grade.contrast.Override(12);grade.saturation.Override(10);grade.postExposure.Override(.08f);
+            var grade=profile.TryGet<ColorAdjustments>(out var cad)?cad:profile.Add<ColorAdjustments>(true);grade.contrast.Override(9);grade.saturation.Override(-3);grade.postExposure.Override(.08f);
             if(profile.TryGet<LiftGammaGain>(out var lift))lift.lift.Override(new Vector4(1,1,1,.001f));
             if(profile.TryGet<SplitToning>(out var split)){split.shadows.Override(new Color(.48f,.49f,.52f));split.highlights.Override(new Color(.52f,.505f,.48f));split.balance.Override(0);}
             if(profile.TryGet<DepthOfField>(out var dof)){dof.mode.Override(DepthOfFieldMode.Bokeh);dof.aperture.Override(5.6f);dof.focalLength.Override(45);}
@@ -268,7 +271,7 @@ namespace JustSail.Editor
         }
 
         // One atomic scene render keeps every art comparison at the same pose and wave time.
-        public static string CaptureStudy(string name,float hour=8,float yaw=-25,float pitch=5,float distance=40)
+        public static string CaptureStudy(string name,float hour=8,float yaw=-25,float pitch=5,float distance=40,string outputDirectory=null)
         {
             if(!EditorApplication.isPlaying)throw new Exception("CaptureStudy requires Play Mode.");
             var ui=Object.FindFirstObjectByType<SailUI>();ui.StartSailing();ui.Pause();
@@ -283,10 +286,12 @@ namespace JustSail.Editor
             var cam=ui.cameraRig.GetComponent<Camera>();float aspect=cam.aspect;cam.aspect=16f/9;
             var reflection=cam.GetComponent<ShoreReflection>();if(reflection)reflection.Refresh();
             var target=RenderTexture.GetTemporary(1600,900,24,RenderTextureFormat.ARGB32);var previousTarget=cam.targetTexture;var previousActive=RenderTexture.active;
-            Texture2D image=null;string path=Path.GetFullPath("../Verification/VisualStudy/"+Path.GetFileName(name)+".png");
+            string directory=Path.GetFullPath(outputDirectory??"../Verification/VisualStudy");Directory.CreateDirectory(directory);
+            Texture2D image=null;string path=Path.Combine(directory,Path.GetFileName(name)+".png");
             try
             {
-                cam.targetTexture=target;cam.Render();RenderTexture.active=target;
+                var request=new UniversalRenderPipeline.SingleCameraRequest{destination=target};
+                RenderPipeline.SubmitRenderRequest(cam,request);RenderTexture.active=target;
                 image=new Texture2D(1600,900,TextureFormat.RGB24,false);image.ReadPixels(new Rect(0,0,1600,900),0,0);image.Apply();
                 File.WriteAllBytes(path,image.EncodeToPNG());
             }

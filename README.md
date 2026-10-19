@@ -1,5 +1,7 @@
 # Just Sail — İlk Yolculuk
 
+**Durum: Askıya alındı — 19 Ekim 2026.** REA kapasitesini değerlendiren prototip çalışması tamamlandı; yeni oyun kapsamı planlanmıyor. Son su/yansıma düzeltmesi ve improved revizyonları bu kaynaklarda bulunur. Windows build ve bütün yerel proje dosyalarının arşivi: [Askıya alma arşivi](https://github.com/SePudra/just_sail/releases/tag/paused-2026-10-19). Arşivdeki tüm ZIP parçalarını aynı klasöre çıkart; her parça bağımsız ZIP dosyasıdır. `SHA256SUMS.json` dosya ve arşiv doğrulamasını içerir.
+
 İki adalı görsel/his prototipi. Küçük bir yelkenliyle Sakin Koy ve Fener Kayalığı çevresinde dolaşılır. SoT'tan uyarlanan deniz/atmosferin yanında Over the Hill raporlarından geliştirilen dar açılı kamera, yumuşak odak, renk düzeni, rüzgârlı bitkiler, aurora, martılar/yunuslar, fotoğraf defteri ve palamar bulunur. Modeller özgün Blender/prosedürel üretimdir.
 
 ## Oynama
@@ -27,6 +29,12 @@ Atmosferi karşılaştırmak için Ayarlar'da **Işık** (gündüz/şafak/akşam
 Sağ fareyle alçaktan bakarak gece aurorasını görebilirsin. Fotoğraflar `%USERPROFILE%/AppData/LocalLow/Just Sail/Just Sail/SeyirDefteri/` altında tutulur. Albüm açıkken seyir durur; vizör açıkken tekne mevcut yelken gücüyle ilerlemeye devam eder. Fotoğraflara puan verilmez.
 
 Bu sürüm iki adalı sınırlı bir sahnedir. Yaklaşık 1,8 km sınırının ötesinde tekne başlangıca döner. Sonsuz dünya, Sail Point, tekne yükseltme, NPC ve tekne konumu/ilerleme kaydı sonraki aşamadadır.
+
+## 19 Ekim görsel / hareket revizyonu
+
+Kıyı paleti, su yansıması/köpük, bitki/kaya modelleri, yelken bağlantıları ve tekne/kamera hareketi güncellendi. Değişiklikler mevcut `FirstVoyage` sahnesinde kullanılır; sahneyi yeniden oluşturmak gerekmez. Bulutta kaynak derlemesi ve sayısal kontroller yapıldı; Unity lisansı bulunmadığı için yeni oyun içi görsel/PhysX kontrolü ve Windows build bekliyor. Ayrıntılar [management.md](management.md#m2d--19-ekim-2026-bulut-revizyonu) içinde.
+
+Lisanslı Unity'de Play → Denize Açıl sonrasında **Just Sail → Review → Capture coastal art** sabit sabah/öğle/akşam/gece/yakın tekne karelerini üretir. Aynı menüde **Run ocean and buoyancy checks** gerçek oyun testlerini başlatır.
 
 ## Üretim dosyaları
 

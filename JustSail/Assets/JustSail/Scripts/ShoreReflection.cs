@@ -19,19 +19,21 @@ namespace JustSail
             var go=new GameObject("Shore reflection camera"){hideFlags=HideFlags.HideAndDontSave};
             reflection=go.AddComponent<Camera>();reflection.enabled=false;
             var data=reflection.GetUniversalAdditionalCameraData();data.renderPostProcessing=false;
-            data.renderShadows=false;data.requiresColorTexture=false;data.requiresDepthTexture=false;
+            data.renderShadows=true;data.requiresColorTexture=false;data.requiresDepthTexture=false;
             texture=new RenderTexture(resolution,resolution,24,RenderTextureFormat.ARGBHalf){name="Autumn shore reflection",useMipMap=true,autoGenerateMips=true,filterMode=FilterMode.Trilinear};
             texture.Create();request.destination=texture;
         }
         void LateUpdate()=>Refresh();
         public void Refresh()
         {
-            if(!source||!reflection||!texture||source.transform.position.y<.15f)return;
+            if(!source||!reflection||!texture||source.transform.position.y<.15f){Shader.SetGlobalFloat("_ShoreReflectionAvailable",0);return;}
             reflection.CopyFrom(source);reflection.enabled=false;reflection.targetTexture=texture;
+            // CopyFrom preserves automatic aspect; the square target would then narrow the frustum to 1:1.
+            reflection.aspect=source.aspect;
             reflection.fieldOfView=source.fieldOfView+4;reflection.ResetProjectionMatrix();
             reflection.cullingMask=source.cullingMask&~(1<<4);reflection.allowMSAA=false;
             reflection.useOcclusionCulling=false;
-            var data=reflection.GetUniversalAdditionalCameraData();data.renderPostProcessing=false;data.renderShadows=false;
+            var data=reflection.GetUniversalAdditionalCameraData();data.renderPostProcessing=false;data.renderShadows=true;
             data.requiresColorTexture=false;data.requiresDepthTexture=false;
             var mirror=Matrix4x4.identity;mirror.m11=-1;
             var pos=source.transform.position;pos.y=-pos.y;reflection.transform.position=pos;

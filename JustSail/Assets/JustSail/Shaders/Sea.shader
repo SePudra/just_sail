@@ -14,7 +14,7 @@ Shader "JustSail/Sea"
             #pragma fragment frag
             #pragma multi_compile_fog
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
-            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
@@ -46,7 +46,7 @@ Shader "JustSail/Sea"
                 float2 rip1=float2(cos(uv1.x*2.2+uv1.y*1.5),sin(uv1.y*2.1-uv1.x*1.4))*.024;
                 float2 rip2=float2(sin(uv2.x*3.1-uv2.y*2.3),cos(uv2.y*2.8+uv2.x*1.9))*.014;
                 float2 rip3=float2(cos(uv3.x*5.0+uv3.y*4.2),sin(uv3.y*4.8-uv3.x*3.6))*.008*detail;
-                float2 ripple=(rip1+rip2+rip3)*.3;
+                float2 ripple=(rip1+rip2+rip3)*lerp(.55,.95,_WeatherData.y);
                 float3 n=normalize(i.normal+float3(ripple.x,0,ripple.y));
                 float3 v=normalize(GetWorldSpaceViewDir(i.world));float facing=saturate(dot(n,v));
                 Light light=GetMainLight(TransformWorldToShadowCoord(i.world));
@@ -68,8 +68,11 @@ Shader "JustSail/Sea"
                 float thickness=max(0,eye-waterEye)*max(.08,abs(v.y));
                 float transmission=exp(-depth*.28)*.22;
                 float2 refractUV=saturate(screen+n.xz*.007*min(1,thickness));
+                float refractedEye=LinearEyeDepth(SampleSceneDepth(refractUV),_ZBufferParams);
+                // Refraction must not pull a foreground hull or rock into the water.
+                refractUV=lerp(screen,refractUV,step(waterEye+.02,refractedEye));
                 col=lerp(col,SampleSceneColor(refractUV)*lerp(_SeaShallow.rgb,1,.35),transmission);
-                float3 reflectionNormal=normalize(lerp(float3(0,1,0),n,.3));
+                float3 reflectionNormal=normalize(lerp(float3(0,1,0),n,.6));
                 float3 reflected=reflect(-v,reflectionNormal);
                 reflected.y=.5*(reflected.y+sqrt(reflected.y*reflected.y+.0064))+.025;
                 float3 reflection=AtmosphereColor(normalize(reflected),i.world,false);
@@ -78,27 +81,31 @@ Shader "JustSail/Sea"
                 #if UNITY_UV_STARTS_AT_TOP
                 mirrorUV.y=1-mirrorUV.y;
                 #endif
-                mirrorUV+=n.xz*.006+ripple*.06;
+                mirrorUV+=n.xz*.012+ripple*.045;
                 float border=min(min(mirrorUV.x,1-mirrorUV.x),min(mirrorUV.y,1-mirrorUV.y));
                 float valid=smoothstep(0,.035,border)*step(0,projected.w);
-                float3 shoreReflection=SAMPLE_TEXTURE2D_LOD(_ShoreReflection,sampler_ShoreReflection,saturate(mirrorUV),1.8).rgb;
-                shoreReflection*=lerp(float3(.32,.8,1),float3(1,1,1),_NightBlend);
+                float reflectionRoughness=lerp(2.0,3.8,saturate(distanceToCamera/230))+_WeatherData.y*.8;
+                float3 shoreReflection=SAMPLE_TEXTURE2D_LOD(_ShoreReflection,sampler_ShoreReflection,saturate(mirrorUV),reflectionRoughness).rgb;
+                // Preserve reflected foliage hues; the old red-channel filter
+                // turned copper trees into mauve patches across the entire sea.
+                shoreReflection*=float3(.88,.96,1);
                 reflection=lerp(reflection,shoreReflection,valid*_ShoreReflectionAvailable);
-                float fresnel=.1+.34*pow(1-facing,3.5);
+                float fresnel=.035+.30*pow(1-facing,4);
                 col=lerp(col,reflection,fresnel);
                 float back=pow(saturate(dot(v,-light.direction)),4);
                 float crest=saturate(i.surface.x*.6+.3)*saturate(1-n.y)*2.8;
                 col+=_SeaShallow.rgb*back*crest*light.color*.22*light.shadowAttenuation;
                 float hdot=saturate(dot(n,normalize(light.direction+v)));
-                float specTight=pow(hdot,160)*.55;
-                float specBroad=pow(hdot,26)*.055;
+                float specTight=pow(hdot,120)*.12;
+                float specBroad=pow(hdot,26)*.075;
                 float spec=(specTight+specBroad)*light.shadowAttenuation;
                 col+=light.color*spec;
                 float foamNoise=Noise3(float3(p*.18,_SeaTime*.13));
                 float crestFoam=saturate((.78-i.surface.y)*4.2)*smoothstep(.43,.7,foamNoise)*(1-smoothstep(60,380,distanceToCamera));
-                float contactFoam=pow(saturate(1.0-thickness/.55),2.2)*smoothstep(.2,.6,foamNoise+.35);
+                float contactFoam=pow(saturate(1.0-thickness/.38),2)*smoothstep(.28,.68,foamNoise+.12);
                 float shoreBand=1-smoothstep(.4,2.5,depth);
-                float shore=pow(saturate(sin(depth*4-_SeaTime*1.25+foamNoise*2)),4)*shoreBand;
+                float wash=.65+sin(_SeaTime*.65+foamNoise*3)*.28;
+                float shore=exp(-pow((depth-wash)/.3,2))*shoreBand*smoothstep(.32,.72,foamNoise);
                 float wake=0;
                 [loop]for(int w=0;w<_WakeCount;w++)
                 {
@@ -114,13 +121,13 @@ Shader "JustSail/Sea"
                 }
                 float2 boatDelta=p-_BoatPose.xy,dir=_BoatPose.zw;
                 float bowAlong=dot(boatDelta,dir),bowSide=abs(dot(boatDelta,float2(-dir.y,dir.x)));
-                float bow=exp(-pow((bowAlong-2.05)/.48,2)-pow((bowSide-.65)/.25,2))*saturate(_BoatSpeed/4)*.55;
-                float foam=saturate(crestFoam*.58+max(shore*.8,contactFoam*.85)+wake+bow);
-                col=lerp(col,_SeaFoam.rgb,foam);
+                float bow=exp(-pow((bowAlong-2.55)/.48,2)-pow((bowSide-.38)/.25,2))*saturate(_BoatSpeed/4)*.55;
+                float foam=saturate(crestFoam*.48+max(shore*.38,contactFoam*.62)+wake+bow);
+                float3 foamColor=_SeaFoam.rgb*lerp(.55,1,light.shadowAttenuation);
+                col=lerp(col,foamColor,foam);
                 float trough=saturate(dot(n,light.direction)*.5+.5);
                 col*=lerp(.95,1,trough);
-                float3 fogged=MixFog(col,i.fog);
-                return half4(lerp(fogged,DioramaFog(fogged,i.world),.3),1);
+                return half4(DioramaFog(col,i.world),1);
             }
             ENDHLSL
         }

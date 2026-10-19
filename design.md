@@ -1,10 +1,10 @@
 # Just Sail — Sanat Yönü ve Sunum
 
-Sürüm: 0.5 · 16 Ekim 2026 · Video referanslı sonbahar kıyısı; görsel kabul bekliyor
+Sürüm: 0.6 · 19 Ekim 2026 · Kıyı paleti / hareket tutarlılığı; Unity görsel doğrulaması bekliyor
 
 ## Görsel dil
 
-**Stylized Low-Poly 3D + Minimalist Art Direction + Atmospheric Lighting.** Kullanıcının dört tanıtım videosuyla güncel hedef sonbahar kıyısı oldu: sıcak turuncu ot örtüsü, çam/huş grupları, geniş gri kaya yüzeyleri, mavi yansıtıcı su ve krem yelken. Önceki seyrek Ege kompozisyonu bu hedefi karşılamadı (FB-005). Henüz kullanıcı tarafından onaylanmış oyun render'ı yok.
+**Stylized Low-Poly 3D + Minimalist Art Direction + Atmospheric Lighting.** Kullanıcının dört tanıtım videosuyla güncel hedef sonbahar kıyısı oldu: bakır ve saman tonlu çayırlar, yer yer adaçayı yeşili açıklıklar, çam/huş grupları, geniş serin kaya yüzeyleri, mavi yansıtıcı su ve krem yelken. Önceki seyrek Ege kompozisyonu bu hedefi karşılamadı (FB-005). Henüz kullanıcı tarafından onaylanmış oyun render'ı yok.
 
 Ana kare Ekim videosunun 67,5. saniyesindeki göl kıyısıdır; geniş manzara, ot/ışık ve su yakın planı yardımcıdır. Seçimler ve kaynak zamanları `Verification/VisualStudy/selected.json` içinde. “Sabah” Just Sail'in saat 08.00 ışık hedefidir; tanıtım videosunun gerçek oyun saati veya oynanış kamerası olduğu varsayılmaz. Her tur aynı poz/saat/dalga anındaki gerçek Unity karesiyle karşılaştırılır; fark ve sonraki düzeltme `Verification/VisualStudy/iterations.md` içinde tutulur.
 
@@ -17,19 +17,19 @@ sRGB başlangıç renkleri; aydınlatılmış piksel sonucu veya kesin ayar değ
 | Rol | Renk | Rol | Renk |
 | --- | --- | --- | --- |
 | Açık deniz | `#24547D` | Sığ su | `#6AA4AB` |
-| Köpük | `#D7EBDE` | Kaya | `#97909A` |
-| Ot örtüsü | `#FF7D3B`–`#FF9957` | Çam | `#466B38` |
+| Köpük | `#D7EBDE` | Kaya | `#777E83` |
+| Ot örtüsü | `#B48A53`–`#C6A166`; bakır `#AD7350`, adaçayı `#7E825B` | Çam | `#466B38` |
 | Yelken | `#F7ECD1` | Ahşap | `#946044` |
 | Tekne gövdesi | `#863F35` | Huş yaprakları | Altın / pas turuncusu |
 
 ## Su
 
 - Altı yönlü Gerstner dalgası: 64–2,7 m dalga boyları; geniş solugan, orta dalga ve küçük yüzey hareketi. Yakında sıklaşan tekne merkezli mesh silüeti taşır. FFT kullanılmıyor.
-- Shader ve fizik aynı dalga parametreleri/zamanını kullanır. Gerstner yatay displacement varsa dünya XZ konumuyla mesh başlangıç koordinatı farkı örneklemede çözülür.
+- Shader ve fizik aynı dalga parametrelerini kullanır. Saat render karesinde biriktirilmez: Unity’nin ölçekli zamanı fizik adımında sabit adım zamanını verir; pause iki yolu da durdurur. Solugan yönü başlangıçta sabitlenir; hava rüzgârıyla her kare dönüp dünya boyunca faz kaydırmaz. Gerstner yatay displacement varsa dünya XZ konumuyla mesh başlangıç koordinatı farkı örneklemede çözülür.
 - Açık turkuaz sığlık → orta turkuaz → derin mavi geçişi geniş bir derinlik aralığına yayılır. Rengi belirleyen taban derinliği komşu örneklerle yumuşatılır; köpük, dalga ve fizik kesin derinliği kullanır. Yansıma kontrastı ve üst üste binen sis suyu sert renk lekelerine bölmez (FB-004). Palet günün ışığıyla değişir.
 - Geniş yumuşak güneş parlaması; küçük beyaz noktalar ve yoğun yansımalar yüzeye hâkim olmaz.
 - Tepe köpüğü yatay yüzey dönüşümünün gerçek Jacobian determinantından çıkar; seyrek kalır ve mesafeyle azalır. Ada collider'larından fırınlanan deniz tabanı dokusu kıyı sönümünü, sığlığı ve hareketli kıyı köpüğünü besler.
-- Derinlik soğurması, sınırlı sığ su kırılması, Fresnel ve tepe arka ışığı kullanılır. FB-005 ile 1024² planar kıyı yansıması eklendi; dalga normaliyle hafif bozulur, mavi süzme ve yumuşak kenar geçişiyle yüzeye bağlanır. Gökyüzü/bulut yansıması doku dışında devam eder. SSR yoktur. Sakin hava dalga ölçeği .42; fırtınada 1.65, CPU/GPU ortaktır.
+- Derinlik soğurması, sınırlı sığ su kırılması, Fresnel ve tepe arka ışığı kullanılır. FB-005 ile 1024² planar kıyı yansıması eklendi; dalga normaliyle hafif bozulur, hafif nötr süzme ve yumuşak kenar geçişiyle yüzeye bağlanır. Mesafeyle yansıma keskinliği azalır; kıyıdaki gölgeler yansımada da çizilir. Suyun kızıl yansımayı mora çeviren eski filtresi kaldırılmıştır. Gökyüzü/bulut yansıması doku dışında devam eder. SSR yoktur. Sakin hava dalga ölçeği .42; fırtınada 1.65, CPU/GPU ortaktır.
 - Hızla değişen, dönüşü takip eden ve zamanla dağılan tekne izi. Durgun teknede küçük hareket; aşırı sıçrama/parçacık yok.
 - Dalga, kıyı köpüğü ve iz aynı hareketi destekler. Su dikişi, köpük tekrarı, titreşim ve trail kopması kontrol edilir.
 
@@ -37,10 +37,10 @@ sRGB başlangıç renkleri; aydınlatılmış piksel sonucu veya kesin ayar değ
 
 ## Tekne ve hareket hissi
 
-Güncel model yaklaşık 5,2 m kabinli yelkenli: bordo gövde, krem üst borda/yelken, ayrı güverte kaplamaları, pencere ve lombozlar, oturma alanı, usturmaça, can simidi, metal donanım ve arma. Blender kaynağı `ArtSource/JustSail_ReferenceAssets.blend`. Rigid parçalar materyal paylaşacak şekilde birleştirilir; yelkenler hareket için ayrı kalır. Huş taçları birkaç dal kütlesi ve ince yaprak geometrisinden, çamlar daralan dal katmanlarından oluşur.
+Güncel model yaklaşık 5,2 m kabinli yelkenli: bordo gövde, krem üst borda/yelken, ayrı güverte kaplamaları, pencere ve lombozlar, oturma alanı, usturmaça, can simidi, metal donanım ve arma. Blender kaynağı `ArtSource/JustSail_ReferenceAssets.blend`. Rigid parçalar materyal paylaşacak şekilde birleştirilir; ana yelken, kenar halatları ve bumba aynı hareket grubundadır. Ana yelken direk, flok eğimli baş istralyası çevresinde döner; görünür rüzgâra tepkileri sönümlenir. FBX malzemeleri isimle proje malzemelerine eşlenir; sahnedeki eski sıra numarası geçersiz kılmaları kaldırılmıştır. Huş taçları birkaç dal kütlesi ve ince yaprak geometrisinden, çamlar daralan dal katmanlarından oluşur.
 
 - Altı probda suya gömülen hacim ve suya göre hızdan kaldırma/sönüm kuvveti hesaplanır. Ön/arka ve sağ/sol dalgaya ayrı tepki verir; ortak CPU/GPU dalga alanı yatay displacement terslenerek örneklenir.
-- İleri atalet korunur; yanal su direnci yana kaymayı sınırlar. Düşük hızda dümen kontrolü kalır.
+- İleri atalet korunur; yanal direnç, suyun yerel hızına göre hesaplanır. Kaldırma sönümü yukarı çıkan gövdeyi de frenler. Dümen kademeli tepki verir; su dışında dönme kuvveti kesilir. Yelken yükü ve dönüş sınırlı yatış üretir. Düşük hızda dümen kontrolü kalır.
 - Rüzgâr/yelken tepkisi hafif; erişilebilir kontrolün kuralları product.md'dedir.
 - Tekne yatışı görünür, kamera ufku aynı ölçüde sallanmaz. Fizik sabit adım, render interpolasyonu ve geç kamera takibiyle çalışır.
 - Dinamik teknede basit/compound collider; kıyı temasında ceza yerine kurtarma olanağı. Kuvvet ve sönüm değerleri Inspector'dan ayarlanır, ölçek görülmeden kesinleştirilmez.
@@ -66,7 +66,9 @@ Ana güneş, ortam ışığı, kontrollü gölge ve mesafe sisiyle başla. URP'd
 
 M2 atmosferi 24 dakikalık döngüde şafak, gündüz, akşam ve ay ışığını geçirir; gökyüzü ve su paletleri birlikte değişir. Bulutlar rüzgârla hareket eden hacim örneklemesidir. Gezici fırtınanın mesafesi dalga büyüklüğünü, sis, yağmur, ışık, yüzey ıslaklığı ve ambiyansı yumuşakça etkiler. Sis URP mesafe sisidir; hacimsel sis/god ray uygulanmış sayılmaz. Yüksek kalitede dört gölge kaskadı 15/50/180/600 m aralıklarını hedefler; düşük kalitelerde menzil kısalır. Hasar, su alma ve pusula sapması yoktur.
 
-34° perspektif takip kamerası, başlangıç uzaklığı 40 m, eğim 5°; yakın kıyı/tekne ilişkisini gösterir. Tekerlek aralığı 22–55 m; fareyle yüksek diorama veya alçak gökyüzü görünümü seçilebilir. Karşılaştırmada direk ve su hattı kesilmez. Serbest bakıştan dönüş öngörülebilir; yakın kıyıda geometri içine girmez.
+34° perspektif takip kamerası, başlangıç uzaklığı 40 m, eğim 9°; yakın kıyı/tekne ilişkisini gösterir. Tekerlek aralığı 22–55 m; fareyle yüksek diorama veya alçak gökyüzü görünümü seçilebilir. Karşılaştırmada direk ve su hattı kesilmez. Serbest bakış bırakıldıktan 1,5 saniye sonra yön takibi döner. Bakış yüksekliği ayrı sönümlenir; ufuk teknenin kısa dikey hareketlerini doğrudan izlemez. Kamera hacmi küre taramasıyla, yumuşatma öncesinde ve sonrasında kıyıya karşı sınanır; çalışma zamanı temas kontrolü bekliyor.
+
+Arazi, ot, tekne ve su tek analitik sis yolunu kullanır; üst üste iki sis katmanı uygulanmaz. Arazi ve ot renkleri `CoastalPalette.hlsl` içindeki aynı geniş renk alanlarından gelir; ot kökleri sabit, uçları rüzgâra bağlıdır. Kayada dar ıslak su hattı ve sınırlı liken rengi bulunur.
 
 Neutral tonemapping, kontrollü kontrast ve sıcak vurgu/serin gölge kullanılır. Görsel karşılaştırmalar odak bulanıklığı kapalı yapılır; C ile isteğe bağlı hafif Bokeh açılır, eski kullanıcı tercihi korunur. URP SSAO temas derinliği sağlar; HBAO paketi kullanılmaz. Yakın kıyıyı soldurmayan analitik sis uzaklığı ayırır; gerçek hacimsel Buto/god ray değildir. Gökyüzü ve su aynı zümrüt/lavanta aurora alanını paylaşır; açık gecelerde görülür, fırtına/kapalı havada söner; üç gecelik dizide bir gece görünmez.
 
