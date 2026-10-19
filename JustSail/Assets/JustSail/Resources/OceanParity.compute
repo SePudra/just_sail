@@ -1,0 +1,16 @@
+#pragma kernel CSMain
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+#include "../Shaders/OceanWaves.hlsl"
+StructuredBuffer<float4> Inputs;
+RWStructuredBuffer<float4> Outputs;
+int Count;
+[numthreads(64,1,1)]
+void CSMain(uint3 id:SV_DispatchThreadID)
+{
+    if(id.x>=Count)return;
+    float4 p=Inputs[id.x];float3 position,normal,velocity;float jacobian;
+    OceanSurface(p.xy,p.z,position,normal,jacobian,velocity);
+    Outputs[id.x*3]=float4(position,jacobian);
+    Outputs[id.x*3+1]=float4(normal,0);
+    Outputs[id.x*3+2]=float4(velocity,0);
+}

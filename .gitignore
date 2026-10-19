@@ -1,0 +1,35 @@
+# Unity generated files
+/JustSail/[Ll]ibrary/
+/JustSail/[Tt]emp/
+/JustSail/[Oo]bj/
+/JustSail/[Ll]ogs/
+/JustSail/[Uu]ser[Ss]ettings/
+/JustSail/[Mm]emoryCaptures/
+/JustSail/Recordings/
+/JustSail/.vs/
+/JustSail/.vscode/
+*.csproj
+*.sln
+*.slnx
+*.user
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+# Local outputs, tools and reference evidence
+/Builds/
+/Tools/
+/Verification/
+/rea_info/
+/unity-install.ps1
+# Backups and secrets
+*.blend1
+*.blend2
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.DS_Store
+Thumbs.db
